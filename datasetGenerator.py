@@ -15,7 +15,7 @@ def cost_function(cgpa, iq, w_cgpa, w_iq):
 with open("dataset.csv", "w") as f:
     f.write("cgpa,iq,placement\n")
     
-    placement_threshold = 60  # Lowering the threshold for more realistic results
+    placement_threshold = 50  # Lowering the threshold for more realistic results
 
     # Weight set 1: 0.6, 0.4
     for i in range(250):
