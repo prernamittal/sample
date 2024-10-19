@@ -31,28 +31,36 @@ test_id = st.text_input('Enter IQ Test ID', '')
 if 'iq_score' not in st.session_state:
     st.session_state.iq_score = 0
 
+from selenium.webdriver.chrome.options import Options
+
 def fetch_iq_score(test_id):
     url = f"https://www.123test.com/iq-test/id={test_id}&version="
     driver = None  # Initialize driver variable
 
     try:
+        # Set up headless Chrome options
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Run headless
+        chrome_options.add_argument("--no-sandbox")  # Overcome limited resource problems
+        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+
         # Initialize WebDriver
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         driver.get(url)
-        
+
         # Wait for page to load and locate the article with class "lopende-tekst"
         article = driver.find_element(By.CLASS_NAME, 'lopende-tekst')
-        
+
         # Find the <p> tag containing the target text
         paragraphs = article.find_elements(By.TAG_NAME, 'p')
-        
+
         # Loop through the paragraphs and search for the score
         iq_text = None  # Initialize iq_text
         for p in paragraphs:
             if "IQ score" in p.text:
                 iq_text = p.text
                 break
-        
+
         # Check if iq_text was found before trying to extract the score
         if iq_text:
             iq_score = re.search(r'IQ score.*?(\d{1,3})', iq_text).group(1)
@@ -61,7 +69,7 @@ def fetch_iq_score(test_id):
             raise ValueError("IQ score not found in the text.")
 
         return iq_score
-    
+
     except Exception as e:
         st.error(f"Error fetching IQ score: {e}")
         return None
@@ -69,7 +77,6 @@ def fetch_iq_score(test_id):
     finally:
         if driver:
             driver.quit()  # Ensure driver is quit if it was initialized
-
 
 # Add an "Apply" button next to the Test ID input
 if st.button('Apply'):
