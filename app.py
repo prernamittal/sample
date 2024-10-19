@@ -33,6 +33,8 @@ if 'iq_score' not in st.session_state:
 
 def fetch_iq_score(test_id):
     url = f"https://www.123test.com/iq-test/id={test_id}&version="
+    driver = None  # Initialize driver variable
+
     try:
         # Initialize WebDriver
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
@@ -45,22 +47,29 @@ def fetch_iq_score(test_id):
         paragraphs = article.find_elements(By.TAG_NAME, 'p')
         
         # Loop through the paragraphs and search for the score
+        iq_text = None  # Initialize iq_text
         for p in paragraphs:
             if "IQ score" in p.text:
                 iq_text = p.text
                 break
         
-        # Use regex to extract the score from the text
-        iq_score = re.search(r'IQ score.*?(\d{1,3})', iq_text).group(1)
-        iq_score = int(iq_score)
-        
-        driver.quit()
+        # Check if iq_text was found before trying to extract the score
+        if iq_text:
+            iq_score = re.search(r'IQ score.*?(\d{1,3})', iq_text).group(1)
+            iq_score = int(iq_score)
+        else:
+            raise ValueError("IQ score not found in the text.")
+
         return iq_score
     
     except Exception as e:
-        driver.quit()
         st.error(f"Error fetching IQ score: {e}")
         return None
+
+    finally:
+        if driver:
+            driver.quit()  # Ensure driver is quit if it was initialized
+
 
 # Add an "Apply" button next to the Test ID input
 if st.button('Apply'):
